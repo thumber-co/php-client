@@ -3,7 +3,7 @@
 define('THUMBER_CLIENT_USER_AGENT', 'Thumber Client 1.0 (PHP ' . phpversion() . '; ' . php_uname() . ')');
 
 define('THUMBER_SERVER_HOST', 'api.thumber.co');
-define('THUMBER_SERVER_PATH', '/');
+define('THUMBER_SERVER_PATH', '/create.json');
 
 define('THUMBER_CLIENT_PATH', dirname(__FILE__) . '/');
 
@@ -139,8 +139,8 @@ class ThumberClient
       if (!isset(self::$callback)) {
          die(__CLASS__ . '::$callback must be initialized.');
       }
-      
-      $json = stream_get_contents(STDIN);
+
+      $json = stream_get_contents(fopen('php://input', 'r'));
       $resp = ThumberResp::parseJson($json);
       
       if (is_null($resp)) {

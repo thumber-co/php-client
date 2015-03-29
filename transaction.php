@@ -160,7 +160,7 @@ abstract class ThumberTransaction {
       return isset($this->nonce) &&
          isset($this->timestamp) &&
          isset($this->checksum) &&
-         (is_null($secret) || $this->isValidChecksum());
+         (is_null($secret) || $this->isValidChecksum($secret));
    }
    
    /**
@@ -180,21 +180,23 @@ abstract class ThumberTransaction {
     * @return string The checksum representing this instance.
     */
    public function computeChecksum($secret) {
-      include_once THUMBER_CLIENT_PATH . 'util.php';
-      
       $arr = $this->toArray();
       unset($arr['checksum']);
       
       // only use up to the first 1024 characters of each value in computing checksum
       // encode any special characters in value
       foreach ($arr as &$v) {
-         $v = substr((string)$v, 0, 1024);
+         if (is_bool($v)) {
+            $v = $v ? 'true' : 'false';
+         } else {
+            $v = substr((string)$v, 0, 1024);
+         }
       }
-      
+
       ksort($arr, SORT_STRING);
-      
-      $query = http_build_query($arr, null, '&', PHP_QUERY_RFC3986);
-      return hash_hmac('sha256', $query, $secret, true);
+
+      $query = self::implode('=', '&', $arr);
+      return hash_hmac('sha256', $query, $secret, false);
    }
    
    /**
@@ -251,5 +253,23 @@ abstract class ThumberTransaction {
     */
    private static function secondCharToUpper($string) {
       return strtoupper($string[1]);
+   }
+   
+   /**
+    * Implodes associative array.
+    * @param string $inner Glue between key and value.
+    * @param string $outer Glue between key-value pairs.
+    * @param array $arr The array to be imploded.
+    * @return string The implosion.
+    */
+   private static function implode($inner, $outer, $arr) {
+      if (count($arr) == 0) return '';
+      $ret = '';
+      
+      foreach ($arr as $k => $v) {
+         $ret .= "$k$inner$v$outer";
+      }
+      
+      return substr($ret , 0, -strlen($outer));
    }
 }
