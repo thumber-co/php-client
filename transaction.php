@@ -205,12 +205,15 @@ abstract class ThumberTransaction {
     * @return array Array representation of this instance.
     */
    public function toArray() {
+     // force generation of Base64 data if not yet generated
+     $this->getEncodedData();
+      
      $ret = array();
      
      foreach(get_object_vars($this) as $k => $v) {
         if (is_null($v)) continue;
         
-        // cammel case to underscore word deliniation
+        // camel case to underscore word delineation
         $k = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $k));
         $ret[$k] = $v;
      }
